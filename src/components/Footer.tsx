@@ -1,6 +1,56 @@
+import { useState } from "react";
 import { hrefFor, type Route } from "../hooks";
+import { downloadProjectZip } from "../downloadSource";
 import { ArchWatermark } from "./ornaments";
 import { Icons } from "./ui";
+
+function DownloadSourceButton() {
+  const [state, setState] = useState<"idle" | "busy" | "done">("idle");
+
+  const onClick = async () => {
+    if (state === "busy") return;
+    setState("busy");
+    try {
+      await downloadProjectZip();
+      setState("done");
+      window.setTimeout(() => setState("idle"), 3200);
+    } catch {
+      setState("idle");
+    }
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className={`group inline-flex items-center gap-2.5 border px-4 py-2.5 text-[10px] font-bold tracking-[0.26em] uppercase transition-all duration-300 ${
+        state === "done"
+          ? "border-emerald bg-emerald text-marble"
+          : "border-gold/50 text-gold-light hover:border-gold hover:bg-gold hover:text-maroon-ink"
+      }`}
+    >
+      <svg
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className={`h-4 w-4 transition-transform duration-300 ${
+          state === "idle" ? "group-hover:translate-y-0.5" : ""
+        }`}
+        aria-hidden="true"
+      >
+        <path d="M12 3v11m0 0-4-4m4 4 4-4" />
+        <path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2" />
+      </svg>
+      {state === "busy"
+        ? "Packing zip…"
+        : state === "done"
+          ? "Saved — check downloads"
+          : "Download source (.zip)"}
+    </button>
+  );
+}
 
 const NAV: { route: Route; label: string }[] = [
   { route: "home", label: "Home" },
@@ -147,7 +197,10 @@ export function Footer() {
           <span className="font-display text-sm normal-case tracking-normal italic text-gold/70">
             &ldquo;Where Every Guest is Royalty&rdquo;
           </span>
-          <span>Crafted with nifasat in Lahore</span>
+          <span className="flex items-center gap-5">
+            <span className="hidden sm:inline">Crafted with nifasat in Lahore</span>
+            <DownloadSourceButton />
+          </span>
         </div>
       </div>
     </footer>
